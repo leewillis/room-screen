@@ -1,0 +1,9 @@
+.git/
+
+# intellij files and folders
+**/.idea/
+**/.mvm/
+**/target/
+**/mvnw
+**/mvw.cmd
+**/web.iml

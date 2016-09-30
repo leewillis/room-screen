@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Room Screen</title>
+
+    <script   src="https://code.jquery.com/jquery-3.1.0.slim.min.js"   integrity="sha256-cRpWjoSOw5KcyIOaZNo4i6fZ9tKPhYYb6i5T9RSVJG8="   crossorigin="anonymous"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular.min.js"></script>
+    <!--<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular.route.min.js"></script>-->
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+    <style>
+        html, body{
+            width:100%;
+            height:100%;
+            background-color: black;
+            overflow: hidden;
+            margin:0px;
+            padding:0px;
+            /*margin-top: 60px;*/
+            /*margin: 0px auto;*/
+        }
+
+        img{
+            position:absolute;
+            transition: opacity 0.25s ease-in-out;
+            -webkit-transition: opacity 0.25s ease-in-out;
+            /*border:1px solid red;*/
+            /*position:absolute;*/
+            /*box-shadow: 20px 20px 40px #000;*/
+            /*
+            margin:5px;
+            margin-top:5px;
+            box-shadow: 5px 5px 5px 2px rgba(0,0,0,0.8);
+            */
+            /*border:1px solid #000;*/
+        }
+
+        img.transparent {
+            opacity: 0;
+        }
+
+        .file-label{
+            margin: 0 auto;
+            left:0;
+            right:0;
+            text-align: center;
+            position:absolute;
+            font-weight:bold;
+            font-size:125%;
+            color:white;
+            z-index: 99;
+        }
+
+    </style>
+
+    <script type="application/javascript">
+
+        var webapp = angular.module('RoomScreen', []);
+
+        webapp.controller('RootController',
+                ['$http', '$window', '$interval',
+                    function($http, $window, $timeout){
+
+                        var self = this;
+
+                        self.vm = {
+                            interval: 10000,
+                            label: ""
+                        }
+
+                        var container = $("body");
+                        //create the images
+                        var img1 = new Image();
+                        var img2 = new Image();
+                        $(img1).attr("id", "image1");
+                        $(img2).attr("id", "image2");
+
+                        //set up some ref vars that will be swapped
+                        var back = img2;
+                        var display = img1;
+
+                        container.append(img1);
+                        container.append(img2);
+
+                        var timeout = null;
+
+                        self.getNextPicture = function(display, back, interval){
+                            //cause we are in the timeout it seems to accumulate
+                            console.log("getNextPicture " + interval);
+                            if(timeout!==null){
+                                $timeout.cancel(timeout);
+                            }
+                            //console.log("getNextPicture: display: " + $(display).attr("id") + ". back: " + $(back).attr("id"));
+                            $http.get('/nextPicture')
+                                    .success(function(data){
+
+                                        console.log("got pic " + data.fileName);
+
+                                        //self.vm.label = data.label; this is for the hidden image
+                                        // need to write on the image or use a container
+                                        if(interval===100){
+                                            back.src = data.imageAsB64;
+                                        }else{
+                                            //$(display).removeClass("transparent");
+                                            //$(back).addClass("transparent");
+                                            console.log("Show pic");
+                                            $(display).show();
+                                            //console.log("remove transparancy");
+                                            //$(display).removeClass("transparent");
+                                            console.log("hide pic");
+                                            $(back).hide();
+                                            //$(back).addClass("transparent");
+
+                                            back.src = data.imageAsB64;
+                                        }
+
+                                        self.scaleImage(back, data);
+
+                                        timeout = $timeout(function(){
+                                            self.getNextPicture(back, display, self.vm.interval)}, interval);
+
+                                    })
+                                    .error(function(er){
+                                        console.error(er);
+                                    })
+
+                        };
+
+                        self.scaleImage = function(img, data){
+                            console.log("scaleImage start");
+                            //done here to handle resizing
+                            var ww = $window.innerWidth;
+                            var wh = $window.innerHeight;
+                            if( (ww / wh) > data.ratio){
+                                var scale = wh / data.height;
+                                $(img).attr("width", "");
+                                $(img).attr("height", wh);
+                                $(img).css("left", (ww - (data.width * scale)) / 2);
+                            }else{
+                                var scale = ww / data.width ;
+                                $(img).attr("width", "");
+                                $(img).attr("width", ww);
+                                $(img).css("top", (wh - (data.height * scale)) / 2);
+                            }
+                            console.log("scaleImage end");
+                        };
+
+                        console.log("Starting");
+                        self.getNextPicture(img1, img2, 100);
+
+                    }])
+    </script>
+
+</head>
+<body data-ng-app="RoomScreen" data-ng-controller="RootController as ctrl" ng-cloak>
+
+<div class="file-label">
+    {{ctrl.vm.label}}</div>
+
+</body>
+</html>

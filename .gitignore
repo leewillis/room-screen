@@ -2,8 +2,8 @@
 
 # intellij files and folders
 **/.idea/
-**/.mvm/
+**/.mvn/
 **/target/
 **/mvnw
-**/mvw.cmd
+**/mvnw.cmd
 **/web.iml

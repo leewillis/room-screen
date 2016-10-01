@@ -29,8 +29,9 @@ class Application:
         b64 = photo["imageAsB64"]
 
         im = Image.open(BytesIO(base64.b64decode(b64)))
+        owidth, oheight = im.size
 
-        ir = im.height / im.width
+        ir = oheight / owidth
         #these never change...
         sw = root.winfo_screenwidth()
         sh = root.winfo_screenheight()
@@ -38,9 +39,9 @@ class Application:
 
         if ir >= sr:
             nh = sh
-            nw = (int) (im.width * (sh /  im.height))
+            nw = (int) (owidth * (sh /  oheight))
         else:
-            nh = (int) (im.height * (sw / im.width))
+            nh = (int) (oheight * (sw / owidth))
             nw = sw
 
         im = im.resize((nw, nh),  Image.ANTIALIAS)

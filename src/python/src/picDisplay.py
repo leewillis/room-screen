@@ -9,12 +9,20 @@ from PIL import ImageTk, Image
 from io import BytesIO
 
 class Application:
+
+    def key(p1, p2):
+        if p2.keysym=="Escape":
+            quit()
+
     def __init__(self, parent):
         self.container = Frame(parent)
         self.container.pack(fill=BOTH, expand=YES)
 
         self.canvas = Canvas(self.container, bd=0, highlightthickness=0, background="black")
+        #self.container.bind("<Key>", self.key)
+        #self.canvas.focus_set()
         self.canvas.pack(fill=BOTH, expand=YES)
+
         self.showPicture()
         #photo = self.getPicture()
         #self.showPicture(photo["imageAsB64"], self.canvas)
@@ -50,7 +58,7 @@ class Application:
         l = (int) ((sw - nw) / 2)
         t = (int) ((sh - nh) / 2)
         self.canvas.create_image(l, t, anchor='nw', image=self.canvas.image)
-        root.after(20000, self.showPicture)
+        interval = root.after(20000, self.showPicture)
 
     def getPicture(self):
         #picture = urllib.request.urlopen("http://gibson:8080/nextPicture").read()
@@ -63,7 +71,11 @@ class Application:
 root = Tk()
 root.attributes("-fullscreen", True)
 root.config(cursor="none")
+
+#root.bind("<Button>", quit())
+
 app = Application(root)
+root.bind("<Key>", app.key)
 root.mainloop()
 
 

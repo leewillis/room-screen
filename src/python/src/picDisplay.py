@@ -23,8 +23,9 @@ class Application:
 
         picture = requests.get("http://gibson:8080/nextPicture").content
         content = picture.decode("utf-8")
-        ##print(content)
+
         photo = json.loads(content)
+        print(photo["fullFileName"])
         b64 = photo["imageAsB64"]
 
         im = Image.open(BytesIO(base64.b64decode(b64)))
